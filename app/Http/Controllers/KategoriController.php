@@ -179,7 +179,7 @@ class KategoriController extends Controller
 
     // function untuk membuat index api
     function showAPIKategori(Request $request){
-        $kategori = Kategori::all();
+        $kategori = DB::select('CALL getKategoriAll()');
         return response()->json($kategori);
     }
 
