@@ -159,18 +159,17 @@ class KategoriController extends Controller
      * @param  string $id
      * @return RedirectResponse
      */
-    public function destroy(string $id): RedirectResponse
+    public function destroy($id)
     {
-        //get category by ID
         $kategori = Kategori::findOrFail($id);
-
-        //delete category
-        $kategori->delete();
-
-        //redirect to index
-        return redirect()->route('kategoris.index')->with(['success' => 'Data Berhasil Dihapus!']);
+        
+        try {
+            $kategori->delete();
+            return redirect()->route('kategoris.index')->with('success', 'kategori deleted successfully.');
+        } catch (QueryException $e) {
+            return redirect()->route('kategoris.index')->with('error', 'kategori cannot be deleted because it is associated with other records.');
+        }
     }
-
     /**
      * ketKategori
      *
