@@ -48,30 +48,36 @@ class KategoriController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        //validate form
-        $request->validate([
-            'deskripsi'   => [
-                'required',
-                'string',
-                'max:100',
-                Rule::unique('kategoris')->where(function ($query) use ($request) {
-                    return $query->where('deskripsi', $request->deskripsi);
-                })
-            ],
-            'kategori'    => 'required|in:M,A,BHP,BTHP'
-        ], [
-            'deskripsi.unique' => $request->deskripsi . ' telah tersedia.'
-        ]);
+    //validate form
+    $request->validate([
+        'deskripsi'   => [
+            'required',
+            'string',
+            'max:100',
+            Rule::unique('kategoris')->where(function ($query) use ($request) {
+                return $query->where('deskripsi', $request->deskripsi);
+            })
+        ],
+        'kategori'    => 'required|in:M,A,BHP,BTHP'
+    ], [
+        'deskripsi.unique' => $request->deskripsi . ' telah tersedia.'
+    ]);
 
-
+    DB::beginTransaction();
+    try {
         //create category
         Kategori::create([
             'deskripsi'   => $request->deskripsi,
             'kategori'    => $request->kategori
         ]);
 
+        DB::commit();
         //redirect to index
         return redirect()->route('kategoris.index')->with(['success' => 'Data Berhasil Disimpan!']);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->route('kategoris.index')->with(['error' => 'Data Gagal Disimpan!']);
+    }
     }
     
     /**
