@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('barang_id');
             $table->foreign('barang_id')->references('id')->on('barangs')->onDelete('restrict');
             $table->foreignId('id_barang_masuk')->nullable();
-            $table->foreign('id_barang_masuk')->references('id')->on('barang_masuks')->onDelete('cascade');
+            $table->foreign('id_barang_masuk')->references('id')->on('barang_masuks')->onDelete('restric');
             $table->timestamps();
         });
     }
