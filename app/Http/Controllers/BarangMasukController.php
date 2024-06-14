@@ -65,23 +65,21 @@ class BarangMasukController extends Controller
 
     public function destroy($id)
     {
-        // Cek apakah ada data barang keluar terkait dengan barang masuk yang akan dihapus
-        $barangKeluar = BarangKeluar::where('id_barang_masuk', $id)->where('qty_keluar', '>', 0)->first();
-        if ($barangKeluar) {
-            return redirect()->route('barang_masuks.index')->with(['error' => 'Data tidak dapat dihapus karena ada quantity keluar terkait!']);
+        $datamasuk = BarangMasuk::find($id);
+        
+        // Memeriksa apakah ada record di tabel BarangKeluar dengan barang_id yang sama
+        $referencedInBarangKeluar = BarangKeluar::where('barang_id', $datamasuk->barang_id)->exists();
+
+        if ($referencedInBarangKeluar) {
+        // Jika ada referensi, penghapusan ditolak
+        return redirect()->route('barangmasuk.index')->with(['error' => 'Data Tidak Bisa Dihapus Karena Masih Digunakan di Tabel Barang dan Barang Keluar!']);
         }
 
-        // Jika tidak ada data barang keluar terkait, maka hapus data barang masuk
-        $barangMasuk = BarangMasuk::findOrFail($id);
+        // Menghapus record di tabel BarangMasuk
+        $datamasuk->delete();
 
-        DB::beginTransaction();
-        try {
-            $barangMasuk->delete();
-            DB::commit();
-            return redirect()->route('barang_masuks.index')->with(['success' => 'Data Barang Masuk Berhasil Dihapus!']);
-        } catch (QueryException $e) {
-            DB::rollBack();
-            return redirect()->route('barang_masuks.index')->with(['error' => 'Data tidak dapat dihapus karena terjadi kesalahan!']);
-        }
+        // Redirect ke index dengan pesan sukses
+        return redirect()->route('barangmasuk.index')->with(['success' => 'Data Berhasil Dihapus!']);
+
     }
 }
