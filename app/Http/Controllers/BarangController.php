@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use App\Models\Barang;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 
 class BarangController extends Controller
 {
@@ -67,9 +68,13 @@ class BarangController extends Controller
     public function destroy($id)
     {
         $barang = Barang::findOrFail($id);
-        $barang->delete();
-
-        return redirect()->route('barangs.index')->with('success', 'Barang deleted successfully.');
+        
+        try {
+            $barang->delete();
+            return redirect()->route('barangs.index')->with('success', 'Barang deleted successfully.');
+        } catch (QueryException $e) {
+            return redirect()->route('barangs.index')->with('error', 'Barang cannot be deleted because it is associated with other records.');
+        }
     }
 
 }

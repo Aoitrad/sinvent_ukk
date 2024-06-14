@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\BarangMasuk;
 use App\Models\BarangKeluar;
 use App\Models\Barang;
+use Illuminate\Database\QueryException;
 use DB;
+
 class BarangMasukController extends Controller
 {
     public function index()
@@ -63,16 +65,23 @@ class BarangMasukController extends Controller
 
     public function destroy($id)
     {
-    // Cek apakah ada data barang keluar terkait dengan barang masuk yang akan dihapus
-    $barangKeluar = BarangKeluar::where('id_barang_masuk', $id)->first();
-    if ($barangKeluar) {
-        return redirect()->route('barang_masuks.index')->with(['error' => 'Data tidak dapat dihapus karena terkait dengan data barang keluar!']);
-    }
+        // Cek apakah ada data barang keluar terkait dengan barang masuk yang akan dihapus
+        $barangKeluar = BarangKeluar::where('id_barang_masuk', $id)->first();
+        if ($barangKeluar) {
+            return redirect()->route('barang_masuks.index')->with(['error' => 'Data tidak dapat dihapus karena terkait dengan data barang keluar!']);
+        }
 
-    // Jika tidak ada data barang keluar terkait, maka hapus data barang masuk
-    $barangMasuk = BarangMasuk::findOrFail($id);
-    $barangMasuk->delete();
+        // Jika tidak ada data barang keluar terkait, maka hapus data barang masuk
+        $barangMasuk = BarangMasuk::findOrFail($id);
 
-    return redirect()->route('barang_masuks.index')->with(['success' => 'Data Barang Masuk Berhasil Dihapus!']);
+        DB::beginTransaction();
+        try {
+            $barangMasuk->delete();
+            DB::commit();
+            return redirect()->route('barang_masuks.index')->with(['success' => 'Data Barang Masuk Berhasil Dihapus!']);
+        } catch (QueryException $e) {
+            DB::rollBack();
+            return redirect()->route('barang_masuks.index')->with(['error' => 'Data tidak dapat dihapus karena terkait dengan data barang keluar!']);
+        }
     }
 }
