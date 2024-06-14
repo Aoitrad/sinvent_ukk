@@ -66,9 +66,9 @@ class BarangMasukController extends Controller
     public function destroy($id)
     {
         // Cek apakah ada data barang keluar terkait dengan barang masuk yang akan dihapus
-        $barangKeluar = BarangKeluar::where('id_barang_masuk', $id)->first();
+        $barangKeluar = BarangKeluar::where('id_barang_masuk', $id)->where('qty_keluar', '>', 0)->first();
         if ($barangKeluar) {
-            return redirect()->route('barang_masuks.index')->with(['error' => 'Data tidak dapat dihapus karena terkait dengan data barang keluar!']);
+            return redirect()->route('barang_masuks.index')->with(['error' => 'Data tidak dapat dihapus karena ada quantity keluar terkait!']);
         }
 
         // Jika tidak ada data barang keluar terkait, maka hapus data barang masuk
@@ -81,7 +81,7 @@ class BarangMasukController extends Controller
             return redirect()->route('barang_masuks.index')->with(['success' => 'Data Barang Masuk Berhasil Dihapus!']);
         } catch (QueryException $e) {
             DB::rollBack();
-            return redirect()->route('barang_masuks.index')->with(['error' => 'Data tidak dapat dihapus karena terkait dengan data barang keluar!']);
+            return redirect()->route('barang_masuks.index')->with(['error' => 'Data tidak dapat dihapus karena terjadi kesalahan!']);
         }
     }
 }
